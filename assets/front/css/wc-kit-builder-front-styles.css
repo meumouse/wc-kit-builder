@@ -1,0 +1,91 @@
+#wc_kit_builder_select_variation h4.variation-title {
+	text-transform: capitalize;
+	font-size: 1.225rem;
+    display: flex;
+    align-items: center;
+}
+
+h4.variation-title > .selected-kit {
+    margin-left: 0.5rem;
+    font-size: 0.925rem;
+    margin-bottom: 0;
+    color: #495057;
+}
+
+#wc_kit_builder_select_variation {
+	margin: 2rem 0;
+}
+
+.kit-options > .kit-item {
+	padding: 1rem 1.325rem;
+	background-color: #fff;
+	color: #343A40;
+	border: 1px solid #DEE2E6;
+	border-radius: 0.5rem;
+	margin-right: 1rem;
+	margin-bottom: 1rem;
+	transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.kit-options > .kit-item:last-of-type {
+	margin-right: 0;
+}
+
+.kit-options > .kit-item:hover {
+	background-color: #F8F9FA;
+	cursor: pointer;
+}
+
+.kit-options > .kit-item.active {
+	background-color: rgba(0, 138, 255, 0.1);
+	color: #008aff;
+	border-color: rgba(0, 138, 255, 0.2);
+}
+
+.kit-options > .kit-item > .kit-item-info {
+	display: flex;
+	flex-direction: column;
+	text-align: center;
+}
+
+.kit-item-info .kit-quantity {
+	font-size: 1rem;
+	font-weight: 500;
+	margin-bottom: 0.325rem;
+}
+
+.kit-item-info .unit-price {
+	font-size: 1.125rem;
+}
+
+.kit-options .kit-item input.hidden,
+table.variations,
+.woocommerce-variation.single_variation {
+	display: none !important;
+}
+
+.kit-options {
+	width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 992px) {
+	#wc_kit_builder_select_variation {
+		padding: 1rem;
+	}
+
+	.kit-options > .kit-item {
+		width: 30%;
+	}
+}
+
+@media (min-width: 992px) {
+	.kit-item-info .unit-price {
+		font-size: 1.325rem;
+	}
+
+	.kit-item-info .kit-quantity {
+		font-size: 1.125rem;
+	}
+}
