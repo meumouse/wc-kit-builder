@@ -23,6 +23,7 @@ class Wc_Kit_Builder_Init {
         add_action( 'woocommerce_save_product_variation', array( $this, 'save_product_kit_checkbox' ), 10, 2 );
         add_action( 'woocommerce_variation_options_pricing', array( $this, 'display_kit_quantity_input' ), 10, 3 );
         add_action( 'woocommerce_save_product_variation', array( $this, 'save_kit_quantity_input' ), 10, 2 );
+        add_action( 'woocommerce_checkout_order_processed', array( $this, 'add_admin_order_note_for_kit_master' ), 10, 1 );
     }
 
 
@@ -36,12 +37,17 @@ class Wc_Kit_Builder_Init {
      * @return void
      */
     public function add_product_kit_checkbox( $loop, $variation_data, $variation ) {
-        $kit_checked = get_post_meta( $variation->ID, '_kit_variation', true ); ?>
+        $kit_checked = get_post_meta( $variation->ID, '_kit_variation', true );
+        $kit_master_checked = get_post_meta( $variation->ID, '_kit_master_enabled', true ); ?>
 
         <label>
-        <?php echo esc_html( 'Kit', 'wc-kit-builder' ); ?>
-        <input type="checkbox" class="checkbox variable_product_kit" name="_kit_variation[<?php echo $loop ?>]" <?php checked( $kit_checked === 'yes'); ?> >
-            </label>
+            <?php echo esc_html( 'Kit', 'wc-kit-builder' ); ?>
+            <input type="checkbox" class="checkbox variable_product_kit" name="_kit_variation[<?php echo $loop ?>]" <?php checked( $kit_checked === 'yes'); ?> >
+        </label>
+        <label>
+            <?php echo esc_html( 'Kit master', 'wc-kit-builder' ); ?>
+            <input type="checkbox" class="checkbox variable_product_kit_master" name="_kit_master_enabled[<?php echo $loop ?>]" <?php checked( $kit_master_checked === 'yes'); ?> >
+        </label>
         <?php
     }
 
@@ -55,8 +61,11 @@ class Wc_Kit_Builder_Init {
      * @return void
      */
     public function save_product_kit_checkbox( $variation_id, $loop ) {
-        $checkbox = isset( $_POST['_kit_variation'][$loop] ) ? 'yes' : 'no';
-        update_post_meta( $variation_id, '_kit_variation', $checkbox );
+        $kit_checkbox = isset( $_POST['_kit_variation'][$loop] ) ? 'yes' : 'no';
+        update_post_meta( $variation_id, '_kit_variation', $kit_checkbox );
+
+        $kit_master_checkbox = isset( $_POST['_kit_master_enabled'][$loop] ) ? 'yes' : 'no';
+        update_post_meta( $variation_id, '_kit_master_enabled', $kit_master_checkbox );
     }
 
 
@@ -93,6 +102,25 @@ class Wc_Kit_Builder_Init {
             </div>
             <?php
         }
+
+        $kit_master_checked = get_post_meta( $variation->ID, '_kit_master_enabled', true );
+
+        if ( $kit_master_checked === 'yes' ) {
+            $sku_kit_master = get_post_meta( $variation->ID, '_sku_kit_master', true );
+            $units_kit_master = get_post_meta( $variation->ID, '_units_kit_master', true ); ?>
+
+            <div class="options_group form-row form-row-full">
+                <p class="form-field">
+                    <label for="sku_kit_master"><?php _e( 'SKU kit master', 'wc-kit-builder' ); ?></label>
+                    <input type="text" class="short" name="sku_kit_master[<?php echo $loop; ?>]" id="sku_kit_master" value="<?php echo esc_attr( $sku_kit_master ); ?>" step="1" min="1" placeholder="<?php _e( 'Por exemplo: PW-112', 'wc-kit-builder' ); ?>" />
+                </p>
+                <p class="form-field">
+                    <label for="units_kit_master"><?php _e( 'Unidades kit master', 'wc-kit-builder' ); ?></label>
+                    <input type="number" class="short" name="units_kit_master[<?php echo $loop; ?>]" id="units_kit_master" value="<?php echo esc_attr( $units_kit_master ); ?>" placeholder="<?php _e( 'Por exemplo: 2', 'wc-kit-builder' ); ?>" />
+                </p>
+            </div>
+            <?php
+        }
     }
 
 
@@ -106,12 +134,43 @@ class Wc_Kit_Builder_Init {
      */
     public function save_kit_quantity_input( $variation_id, $loop ) {
         $quantidade_kit = $_POST['quantidade_kit'][$loop];
-        $unit_of_measure = $_POST['unit_of_measure'][$loop];
-        $kit_description = $_POST['kit_description'][$loop];
-
         update_post_meta( $variation_id, '_quantidade_kit', esc_attr( $quantidade_kit ) );
+
+        $unit_of_measure = $_POST['unit_of_measure'][$loop];
         update_post_meta( $variation_id, '_unit_of_measure', esc_attr( $unit_of_measure ) );
+
+        $kit_description = $_POST['kit_description'][$loop];
         update_post_meta( $variation_id, '_kit_description', esc_textarea( $kit_description ) );
+
+        $sku_kit_master = $_POST['sku_kit_master'][$loop];
+        update_post_meta( $variation_id, '_sku_kit_master', esc_attr( $sku_kit_master ) );
+
+        $units_kit_master = $_POST['units_kit_master'][$loop];
+        update_post_meta( $variation_id, '_units_kit_master', esc_attr( $units_kit_master ) );
+    }
+
+
+    /**
+     * Add admin order note for kit master
+     * 
+     * @since 1.2.0
+     * @param int $order_id | The ID of the order
+     * @return void
+     */
+    public function add_admin_order_note_for_kit_master( $order_id ) {
+        $order = new WC_Order( $order_id );
+    
+        foreach ( $order->get_items() as $item_id => $item ) {
+            $kit_master_checked = get_post_meta( $item->get_variation_id(), '_kit_master_enabled', true );
+    
+            if ( $kit_master_checked === 'yes' ) {
+                $sku_kit_master = get_post_meta( $item->get_variation_id(), '_sku_kit_master', true );
+                $units_kit_master = get_post_meta( $item->get_variation_id(), '_units_kit_master', true );
+                $note = sprintf( esc_html( 'Kit com composição master SKU: %s - Quantidade master: %s', 'wc-kit-builder'), $sku_kit_master, $units_kit_master );
+        
+                $order->add_order_note( $note );
+            }
+        }
     }
 }
 

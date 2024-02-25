@@ -89,3 +89,11 @@ table.variations,
 		font-size: 1.125rem;
 	}
 }
+
+.wc-kit-builder-range-price-text {
+	display: grid;
+}
+
+.wc-kit-builder-range-price-text .amount {
+	order: -1;
+}

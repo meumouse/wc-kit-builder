@@ -148,20 +148,35 @@ class Wc_Kit_Builder_Front {
      * 
      * @return string
      * @since 1.1.0
+     * @version 1.2.0
      * @package MeuMouse.com
      */
     public function starting_from_variable_product_price( $price, $product ) {
         if ( $product->is_type( 'variable' ) ) {
-            $min_price = $product->get_variation_price( 'min', true );
-            $max_price = $product->get_variation_price( 'max', true );
-
-            if ( $min_price !== $max_price ) {
-                $price = '<span class="wc-kit-builder-range-price-text">'. sprintf( esc_html( 'A partir de %s', 'wc-kit-builder' ), wc_price( $min_price ) )  .'</span>';
+            $variations = $product->get_available_variations();
+            $max_kit_price = 0;
+    
+            // iterate over the variations to find the largest kit variation
+            foreach ( $variations as $variation ) {
+                $variation_id = $variation['variation_id'];
+                $kit_variation = get_post_meta( $variation_id, '_kit_variation', true );
+                $kit_quantity = get_post_meta( $variation_id, '_quantidade_kit', true );
+    
+                if ( $kit_variation === 'yes' ) {
+                    $variation_price = $variation['display_price'];
+                    $max_kit_price = max( $max_kit_price, $variation_price );
+                    $range_price_unit = $max_kit_price / $kit_quantity;
+                }
+            }
+    
+            // If there is at least one kit variation, calculate the price based on the largest kit variation
+            if ( $max_kit_price > 0 ) {
+                $price = '<span class="wc-kit-builder-range-price-text">'. sprintf( esc_html( 'A partir de %s', 'wc-kit-builder' ), wc_price( $range_price_unit ) ) .'</span>';
             }
         }
-
+    
         return $price;
-    }
+    }    
 
 
     /**

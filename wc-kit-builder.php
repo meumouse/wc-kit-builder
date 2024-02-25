@@ -5,7 +5,7 @@
  * Description: 			Extensão que permite criação de kits em produtos variáveis para lojas WooCommerce.
  * Author: 					MeuMouse.com
  * Author URI: 				https://meumouse.com/
- * Version: 				1.1.0
+ * Version: 				1.2.0
  * WC requires at least: 	6.0.0
  * WC tested up to: 		8.6.0
  * Requires PHP: 			7.2
@@ -35,7 +35,7 @@ class Wc_Kit_Builder {
 	 *
 	 * @var string
 	 */
-	public static $version = '1.1.0';
+	public static $version = '1.2.0';
 
 	/**
 	 * Settings array.
